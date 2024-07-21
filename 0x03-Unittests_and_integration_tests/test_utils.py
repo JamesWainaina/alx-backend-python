@@ -6,7 +6,7 @@ Parametizing a unit test using utils.access_nested_map function
 
 import unittest
 from typing import Any, Mapping, Sequence
-from utils import access_nested_map, get_json
+from utils import access_nested_map, get_json, memoize
 from parameterized import parameterized
 from unittest.mock import patch, Mock
 
@@ -60,3 +60,36 @@ class TestGetJson(unittest.TestCase):
         mock_response.json.return_value = test_payload
         with patch("requests.get", return_value=mock_response):
             self.assertEqual(get_json(test_url), test_payload)
+
+
+class TestClass:
+
+    def a_method(self):
+        return 42
+
+    @memoize
+    def a_property(self):
+        return self.a_method()
+
+
+class TestMemoize(unittest.TestCase):
+    """
+    Test memoize function
+    """
+
+    def test_memoize(self):
+        """
+        Test method for memoize fcuntion
+        """
+        test_instance = TestClass()
+
+        with patch.object(test_instance, 'a_method') as mock_a_method:
+            mock_a_method.return_value = 42
+
+            result1 = test_instance.a_property
+            result2 = test_instance.a_property
+
+            mock_a_method.assert_called_once()
+
+            self.assertEqual(result1, 42)
+            self.assertEqual(result2, 42)
